@@ -1,0 +1,5 @@
+streamlit
+requests
+streamlit-js-eval
+geopy
+streamlit-autorefresh
