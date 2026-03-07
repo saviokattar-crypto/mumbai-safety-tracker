@@ -26,17 +26,23 @@ contacts = {
 if loc:
     lat, lon = loc['coords']['latitude'], loc['coords']['longitude']
     
-    # ADDRESS LOOKUP
-    geolocator = Nominatim(user_agent="savio_tracker")
+    # ADDRESS LOOKUP - High Priority for Mumbai Areas
+    geolocator = Nominatim(user_agent="mumbai_safety_tracker_savio")
     try:
-        location_obj = geolocator.reverse(f"{lat}, {lon}", language='en')
-        address_name = location_obj.address.split(',')[0] + ", " + location_obj.address.split(',')[-1]
-    except:
-        address_name = "Location Detected"
+        # We try to get the most specific neighborhood name (like Bhattipada)
+        location_obj = geolocator.reverse(f"{lat}, {lon}", language='en', timeout=10)
+        address_parts = location_obj.raw.get('address', {})
+        # Prioritize suburb/neighbourhood for local Mumbai feel
+        place_name = address_parts.get('suburb') or address_parts.get('neighbourhood') or address_parts.get('city_district') or "Mumbai"
+        address_name = f"{place_name}, Mumbai"
+    except Exception:
+        address_name = "Detecting Precise Neighborhood..."
 
-    # WEATHER FETCH
+    # WEATHER FETCH - Forced to Celsius with '&m'
     try:
-        weather_data = requests.get(f"https://wttr.in/{lat},{lon}?format=%C+%t").text
+        # Added &m for Metric/Celsius units
+        weather_res = requests.get(f"https://wttr.in/{lat},{lon}?format=%C+%t&m")
+        weather_data = weather_res.text
     except:
         weather_data = "Weather Unavailable"
     
@@ -44,6 +50,7 @@ if loc:
     st.write(f"**Conditions:** {weather_data}")
 
     # 2.5 DYNAMIC ROUTE DISPLAY
+    # Morning: Home to College | Evening: College to Home
     if "05:00" <= current_time <= "12:00":
         route_display = "🏠 Bhandup ➔ Dadar ➔ Bandra 🎓"
         status_msg = "Morning commute to college. Have a great day!"
