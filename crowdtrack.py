@@ -26,18 +26,26 @@ contacts = {
 if loc:
     lat, lon = loc['coords']['latitude'], loc['coords']['longitude']
     
-    # ADDRESS LOOKUP - High Priority for Mumbai Areas
+   # ADDRESS LOOKUP - Precise Neighborhood Logic
     geolocator = Nominatim(user_agent="mumbai_safety_tracker_savio")
     try:
-        # We try to get the most specific neighborhood name (like Bhattipada)
-        location_obj = geolocator.reverse(f"{lat}, {lon}", language='en', timeout=10)
-        address_parts = location_obj.raw.get('address', {})
-        # Prioritize suburb/neighbourhood for local Mumbai feel
-        place_name = address_parts.get('suburb') or address_parts.get('neighbourhood') or address_parts.get('city_district') or "Mumbai"
-        address_name = f"{place_name}, Mumbai"
+        # We increase the timeout so it doesn't give up too fast
+        location_obj = geolocator.reverse(f"{lat}, {lon}", language='en', timeout=15)
+        raw_addr = location_obj.raw.get('address', {})
+        
+        # This line specifically looks for the area name (e.g., Bhandup, Bhattipada, Kurla)
+        neighborhood = raw_addr.get('suburb') or raw_addr.get('neighbourhood') or raw_addr.get('residential') or raw_addr.get('city_district')
+        
+        if neighborhood:
+            address_name = f"{neighborhood}, Mumbai"
+        else:
+            # Fallback to the first part of the address if neighborhood isn't tagged
+            address_name = location_obj.address.split(',')[0] + ", Mumbai"
+            
     except Exception:
-        address_name = "Detecting Precise Neighborhood..."
-
+        # If the server is truly busy, we show a generic city name instead of a failed message
+        address_name = "Mumbai"
+        
     # WEATHER FETCH - Forced to Celsius with '&m'
     try:
         # Added &m for Metric/Celsius units
@@ -94,3 +102,4 @@ if loc:
 
 st.divider()
 st.caption(f"Last sync: {current_time} | Built with ❤️ by Savio")
+
