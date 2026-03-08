@@ -780,8 +780,8 @@ function tick(){
   if(!running)return;
   frame++;
   bird.v+=0.10; bird.y+=bird.v;
-  if(frame%90===0){
-    var gap=155,top=60+Math.random()*(H-gap-120);
+  if(frame%130===0){
+    var gap=200,top=60+Math.random()*(H-gap-120);
     pipes.push({x:W,top:top,gap:gap,scored:false});
   }
   for(var i=0;i<pipes.length;i++)pipes[i].x-=1.4;
