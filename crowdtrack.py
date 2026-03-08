@@ -70,12 +70,16 @@ from_st = st.selectbox("From Station", mumbai_stations, index=get_index(mumbai_s
 to_st = st.selectbox("To Station", mumbai_stations, index=get_index(mumbai_stations, "Bandra"))
 check_crowd_st = st.selectbox("Monitor Crowd At:", mumbai_stations, index=get_index(mumbai_stations, "Dadar"))
 
-# 4. LIVE DATA (FIXED FOR MOBILE ERROR)
+# 4. LIVE DATA FETCHING
+st.sidebar.markdown("### 🛰️ Location Control")
+if st.sidebar.button("📍 Click to Activate GPS"):
+    st.rerun()
+
 loc = get_geolocation()
 now = datetime.now()
 current_time = now.strftime("%H:%M")
 
-# --- NEW: SAFETY CHECK FOR LOCATION ---
+# --- SAFETY CHECK FOR LOCATION ---
 if loc and 'coords' in loc:
     lat, lon = loc['coords']['latitude'], loc['coords']['longitude']
     address_full, address_short = get_cached_address(lat, lon)
@@ -139,8 +143,9 @@ if loc and 'coords' in loc:
 
 # --- IF LOCATION IS NOT READY YET ---
 else:
-    st.info("🛰️ **Searching for GPS...** Please click 'Allow' on the location popup or wait a moment for the tracker to find you.")
-    st.warning("If you are inside a building or station, signal might be weak. Try moving closer to an open area!")
+    st.info("🛰️ **Searching for GPS...**")
+    st.warning("If no popup appeared, please click the **📍 Activate GPS** button in the sidebar.")
+    st.write("Also check if Location is enabled in your phone's browser settings (Lock 🔒 icon in address bar).")
 
 # 8. JOURNEY REMINDER
 st.divider()
