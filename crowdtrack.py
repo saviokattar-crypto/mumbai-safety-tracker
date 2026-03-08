@@ -40,9 +40,20 @@ st.title("🚉 Mumbai Survival Tracker")
 st.caption(f"Engineered by Savio | {app_caption}")
 
 # 2. FULL STATION DATABASE
-western_line = ["Churchgate", "Marine Lines", "Charni Road", "Grant Road", "Mumbai Central", "Mahalakshmi", "Lower Parel", "Prabhadevi", "Dadar", "Matunga Road", "Mahim", "Bandra", "Khar Road", "Santa Cruz", "Vile Parle", "Andheri", "Jogeshwari", "Ram Mandir", "Goregaon", "Malad", "Kandivali", "Borivali", "Dahisar", "Mira Road", "Bhayandar", "Naigaon", "Vasai Road", "Nallasopara", "Virar", "Vaitarna", "Saphale", "Kelve Road", "Palghar", "Umroli", "Boisar", "Vangaon", "Dahanu Road"]
-central_line = ["CSMT", "Masjid", "Sandhurst Road", "Byculla", "Chinchpokli", "Currey Road", "Parel", "Dadar", "Matunga", "Sion", "Kurla", "Vidyavihar", "Ghatkopar", "Vikhroli", "Kanjurmarg", "Bhandup", "Nahur", "Mulund", "Thane", "Kalwa", "Mumbra", "Diva", "Kopar", "Dombivli", "Thakurli", "Kalyan", "Vitthalwadi", "Ulhasnagar", "Ambernath", "Badlapur", "Vangani", "Shelu", "Neral", "Bhivpuri Road", "Karjat", "Palasdari", "Kelavli", "Dolavli", "Lowjee", "Khopoli", "Shahad", "Ambivli", "Titwala", "Khadavli", "Vasind", "Asangaon", "Atgaon", "Thansit", "Khardi", "Umbarmali", "Kasara"]
-harbour_line = ["Dockyard Road", "Reay Road", "Cotton Green", "Sewri", "Vadala Road", "GTB Nagar", "Chunabhatti", "Kurla", "Tilak Nagar", "Chembur", "Govandi", "Mankhurd", "Vashi", "Sanpada", "Juinagar", "Nerul", "Seawoods", "Belapur", "Kharghar", "Mansarovar", "Khandeshwar", "Panvel", "King's Circle", "Mahim", "Bandra", "Khar Road", "Santa Cruz", "Vile Parle", "Andheri", "Jogeshwari", "Ram Mandir", "Goregaon"]
+western_line = ["Churchgate", "Marine Lines", "Charni Road", "Grant Road", "Mumbai Central", "Mahalakshmi", "Lower Parel", "Prabhadevi",
+                "Dadar", "Matunga Road", "Mahim", "Bandra", "Khar Road", "Santa Cruz", "Vile Parle", "Andheri", "Jogeshwari", "Ram Mandir", "Goregaon", 
+                "Malad", "Kandivali", "Borivali", "Dahisar", "Mira Road", "Bhayandar", "Naigaon", "Vasai Road", "Nallasopara", "Virar", "Vaitarna", "Saphale", "Kelve Road", 
+                "Palghar", "Umroli", "Boisar", "Vangaon", "Dahanu Road"]
+
+central_line = ["CSMT", "Masjid", "Sandhurst Road", "Byculla", "Chinchpokli", "Currey Road", "Parel", "Dadar", "Matunga", "Sion", "Kurla", 
+                "Vidyavihar", "Ghatkopar", "Vikhroli", "Kanjurmarg", "Bhandup", "Nahur", "Mulund", "Thane", "Kalwa", "Mumbra", "Diva", "Kopar", "Dombivli", "Thakurli",
+                "Kalyan", "Vitthalwadi", "Ulhasnagar", "Ambernath", "Badlapur", "Vangani", "Shelu", "Neral", "Bhivpuri Road", "Karjat", "Palasdari", "Kelavli", "Dolavli", "Lowjee", "Khopoli", 
+                "Shahad", "Ambivli", "Titwala", "Khadavli", "Vasind", "Asangaon", "Atgaon", "Thansit", "Khardi", "Umbarmali", "Kasara"]
+
+harbour_line = ["Dockyard Road", "Reay Road", "Cotton Green", "Sewri", "Vadala Road", "GTB Nagar", "Chunabhatti", "Kurla", "Tilak Nagar", "Chembur", "Govandi", "Mankhurd",
+                "Vashi", "Sanpada", "Juinagar", "Nerul", "Seawoods", "Belapur", "Kharghar", "Mansarovar", "Khandeshwar", "Panvel", "King's Circle", "Mahim", "Bandra", "Khar Road",
+                "Santa Cruz", "Vile Parle", "Andheri", "Jogeshwari", "Ram Mandir", "Goregaon"]
+
 mumbai_stations = sorted(list(set(western_line + central_line + harbour_line)))
 
 # 3. JOURNEY SELECTION
@@ -139,3 +150,4 @@ else:
     st.info("✨ **Safe Journey!** Keep your belongings safe and stay alert while boarding.")
 
 st.caption(f"Last sync: {current_time} | Built with ❤️ by Savio")
+
