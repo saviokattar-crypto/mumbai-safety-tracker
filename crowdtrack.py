@@ -11,8 +11,18 @@ st_autorefresh(interval=60000, key="datarefresh")
 
 # --- URL-BASED PERSONALIZATION ---
 query_params = st.query_params
-is_personal = query_params.get("user") == "dhanashri"
-app_caption = "For Dhanashri" if is_personal else "For All Mumbaikars"
+user_type = query_params.get("user", "").lower()
+
+is_dhanashri = user_type == "dhanashri"
+is_mom = user_type == "mom"
+is_personal = is_dhanashri or is_mom
+
+if is_dhanashri:
+    app_caption = "For Dhanashri"
+elif is_mom:
+    app_caption = "For Mom"
+else:
+    app_caption = "For All Mumbaikars"
 # ---------------------------------
 
 @st.cache_data(ttl=300)
@@ -126,10 +136,18 @@ if loc and 'coords' in loc:
     map_link = f"https://www.google.com/maps?q={lat},{lon}"
     msg = f"I%20feel%20unsafe.%20Crowd%20is%20at%20{crowd_pct}%.%20My%20location:%20{map_link}"
     
+    # 7a. PERSONAL SOS BUTTONS
     if is_personal:
         st.sidebar.link_button("🚨 Alert Savio", f"https://wa.me/917506397365?text={msg}", use_container_width=True)
-        st.sidebar.link_button("🚨 Alert Mom", f"https://wa.me/91XXXXXXXXXX?text={msg}", use_container_width=True)
-        st.sidebar.link_button("🚨 Alert Dad", f"https://wa.me/91XXXXXXXXXX?text={msg}", use_container_width=True)
+        
+        if is_dhanashri:
+            st.sidebar.link_button("🚨 Alert Mom", f"https://wa.me/91XXXXXXXXXX?text={msg}", use_container_width=True)
+            st.sidebar.link_button("🚨 Alert Dad", f"https://wa.me/91XXXXXXXXXX?text={msg}", use_container_width=True)
+        elif is_mom:
+            st.sidebar.link_button("🚨 Alert Dad", f"https://wa.me/917738005302?text={msg}", use_container_width=True)
+            st.sidebar.link_button("🚨 Alert Son (Savio)", f"https://wa.me/917506397365?text={msg}", use_container_width=True)
+    
+    # 7b. CUSTOM SOS FOR NORMAL PEOPLE
     else:
         st.sidebar.divider()
         st.sidebar.write("👤 **Emergency Contact Memory**")
@@ -139,7 +157,6 @@ if loc and 'coords' in loc:
         st.session_state.custom_no = st.sidebar.text_input("WhatsApp No (with 91)", st.session_state.custom_no)
         if len(st.session_state.custom_no) > 10:
             st.sidebar.link_button(f"🚨 Alert {st.session_state.custom_name}", f"https://wa.me/{st.session_state.custom_no}?text={msg}", use_container_width=True)
-        st.sidebar.link_button("🚨 Alert Developer (Savio)", f"https://wa.me/917506397365?text={msg}", use_container_width=True)
 
 # --- IF LOCATION IS NOT READY YET ---
 else:
@@ -149,8 +166,10 @@ else:
 
 # 8. JOURNEY REMINDER
 st.divider()
-if is_personal:
-    st.info("✨ **Safe Journey!** Remember to check your surroundings and keep your bag in front before taking the train. Stay safe, Dhanashri!")
+if is_dhanashri:
+    st.info("✨ **Safe Journey!** Remember to check your surroundings and keep your bag in front. Stay safe, Dhanashri!")
+elif is_mom:
+    st.info("✨ **Safe Journey, Mom!** Please be careful while boarding the train. Call Savio if you need anything!")
 else:
     st.info("✨ **Safe Journey!** Keep your belongings safe and stay alert while boarding.")
 
