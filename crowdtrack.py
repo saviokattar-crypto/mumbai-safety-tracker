@@ -286,7 +286,7 @@ def get_trains_between(from_code, to_code):
         return None, "api_key_missing"
     try:
         today   = datetime.now().strftime("%Y-%m-%d")
-        url     = "https://irctc1.p.rapidapi.com/api/v3/trainsBetweenStations"
+        url     = "https://irctc1.p.rapidapi.com/api/v3/trainBetweenStations"
         headers = {
             "x-rapidapi-key":  RAPIDAPI_KEY,
             "x-rapidapi-host": "irctc1.p.rapidapi.com"
