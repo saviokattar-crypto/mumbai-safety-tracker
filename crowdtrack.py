@@ -604,8 +604,10 @@ st.divider()
 st.subheader("🎮 Games — Kill Time!")
 st.caption("Tap a game to expand and play!")
 
+tab1, tab2, tab3, tab4 = st.tabs(["🐍 Snake", "🟨 2048", "🐦 Flappy Bird", "🚗 Racer"])
+
 # ---------- SNAKE ----------
-with st.expander("🐍 Snake"):
+with tab1:
     st.components.v1.html("""<!DOCTYPE html>
 <html><head>
 <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
@@ -678,7 +680,7 @@ draw();
 </script></body></html>""", height=580)
 
 # ---------- 2048 ----------
-with st.expander("🟨 2048"):
+with tab2:
     st.components.v1.html("""<!DOCTYPE html>
 <html><head>
 <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
@@ -740,7 +742,7 @@ init();
 </script></body></html>""", height=560)
 
 # ---------- FLAPPY BIRD ----------
-with st.expander("🐦 Flappy Bird"):
+with tab3:
     st.components.v1.html("""<!DOCTYPE html>
 <html>
 <head>
@@ -770,19 +772,19 @@ function startGame(){
   cancelAnimationFrame(raf);
   tick();
 }
-function flap(){if(running)bird.v=-4.5;}
+function flap(){if(running)bird.v=-3.2;}
 cv.addEventListener('touchstart',function(e){e.preventDefault();flap();},{passive:false});
 cv.addEventListener('click',flap);
 document.addEventListener('keydown',function(e){if(e.code==='Space'){e.preventDefault();flap();}});
 function tick(){
   if(!running)return;
   frame++;
-  bird.v+=0.18; bird.y+=bird.v;
+  bird.v+=0.10; bird.y+=bird.v;
   if(frame%90===0){
     var gap=155,top=60+Math.random()*(H-gap-120);
     pipes.push({x:W,top:top,gap:gap,scored:false});
   }
-  for(var i=0;i<pipes.length;i++)pipes[i].x-=1.8;
+  for(var i=0;i<pipes.length;i++)pipes[i].x-=1.4;
   pipes=pipes.filter(function(p){return p.x>-60;});
   for(var i=0;i<pipes.length;i++){
     if(!pipes[i].scored&&pipes[i].x+50<bird.x){
@@ -830,7 +832,7 @@ draw();
 
 
 # ---------- TRAFFIC RACER ----------
-with st.expander("🚗 Mumbai Traffic Racer"):
+with tab4:
     st.components.v1.html("""<!DOCTYPE html>
 <html><head>
 <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
