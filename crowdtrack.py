@@ -244,7 +244,7 @@ def get_live_rain_data(lat, lon):
         r = requests.get(url, timeout=6)
         if r.status_code == 200:
             data     = r.json()
-            now_hour = datetime.now().hour
+            now_hour = datetime.now(timezone(timedelta(hours=5, minutes=30))).hour
             rain_mm  = data["hourly"]["rain"][now_hour]
             wcode    = data["hourly"]["weathercode"][now_hour]
             return float(rain_mm), int(wcode)
@@ -322,7 +322,8 @@ if st.sidebar.button("📍 Activate GPS"):
     st.rerun()
 
 loc = get_geolocation()
-now          = datetime.now()
+IST          = timezone(timedelta(hours=5, minutes=30))
+now          = datetime.now(IST)
 current_time = now.strftime("%H:%M")
 
 if loc and isinstance(loc, dict) and 'coords' in loc:
@@ -389,7 +390,7 @@ map_link = map_link if 'map_link' in dir() else "https://www.google.com/maps"
 # 13. CROWD TRACKING
 # ============================================================
 # ── Time intelligence ──────────────────────────────────────
-now    = datetime.now()  # always fresh for crowd calc
+now    = datetime.now(timezone(timedelta(hours=5, minutes=30)))  # always IST
 hour   = now.hour
 minute = now.minute
 t      = hour + minute / 60.0          # e.g. 8.5 = 8:30am
