@@ -40,19 +40,23 @@ st.title("🚉 Mumbai Survival Tracker")
 st.caption(f"Engineered by Savio | {app_caption}")
 
 # 2. FULL STATION DATABASE
-western_line = ["Churchgate", "Marine Lines", "Charni Road", "Grant Road", "Mumbai Central", "Mahalakshmi", "Lower Parel", "Prabhadevi",
-                "Dadar", "Matunga Road", "Mahim", "Bandra", "Khar Road", "Santa Cruz", "Vile Parle", "Andheri", "Jogeshwari", "Ram Mandir", "Goregaon", 
-                "Malad", "Kandivali", "Borivali", "Dahisar", "Mira Road", "Bhayandar", "Naigaon", "Vasai Road", "Nallasopara", "Virar", "Vaitarna", "Saphale", "Kelve Road", 
-                "Palghar", "Umroli", "Boisar", "Vangaon", "Dahanu Road"]
+western_line = ["Churchgate", "Marine Lines", "Charni Road", "Grant Road", "Mumbai Central", "Mahalakshmi", 
+                "Lower Parel", "Prabhadevi", "Dadar", "Matunga Road", "Mahim", "Bandra", "Khar Road", "Santa Cruz", 
+                "Vile Parle", "Andheri", "Jogeshwari", "Ram Mandir", "Goregaon", "Malad", "Kandivali", "Borivali", "Dahisar",
+                "Mira Road", "Bhayandar", "Naigaon", "Vasai Road", "Nallasopara", "Virar", "Vaitarna", "Saphale", 
+                "Kelve Road", "Palghar", "Umroli", "Boisar", "Vangaon", "Dahanu Road"]
 
-central_line = ["CSMT", "Masjid", "Sandhurst Road", "Byculla", "Chinchpokli", "Currey Road", "Parel", "Dadar", "Matunga", "Sion", "Kurla", 
-                "Vidyavihar", "Ghatkopar", "Vikhroli", "Kanjurmarg", "Bhandup", "Nahur", "Mulund", "Thane", "Kalwa", "Mumbra", "Diva", "Kopar", "Dombivli", "Thakurli",
-                "Kalyan", "Vitthalwadi", "Ulhasnagar", "Ambernath", "Badlapur", "Vangani", "Shelu", "Neral", "Bhivpuri Road", "Karjat", "Palasdari", "Kelavli", "Dolavli", "Lowjee", "Khopoli", 
-                "Shahad", "Ambivli", "Titwala", "Khadavli", "Vasind", "Asangaon", "Atgaon", "Thansit", "Khardi", "Umbarmali", "Kasara"]
+central_line = ["CSMT", "Masjid", "Sandhurst Road", "Byculla", "Chinchpokli", "Currey Road", "Parel", "Dadar", "Matunga",
+                "Sion", "Kurla", "Vidyavihar", "Ghatkopar", "Vikhroli", "Kanjurmarg", "Bhandup", "Nahur", "Mulund", "Thane",
+                "Kalwa", "Mumbra", "Diva", "Kopar", "Dombivli", "Thakurli", "Kalyan", "Vitthalwadi", "Ulhasnagar", "Ambernath", 
+                "Badlapur", "Vangani", "Shelu", "Neral", "Bhivpuri Road", "Karjat", "Palasdari", "Kelavli", "Dolavli", "Lowjee", 
+                "Khopoli", "Shahad", "Ambivli", "Titwala", "Khadavli", "Vasind", "Asangaon", "Atgaon", "Thansit", "Khardi", 
+                "Umbarmali", "Kasara"]
 
-harbour_line = ["Dockyard Road", "Reay Road", "Cotton Green", "Sewri", "Vadala Road", "GTB Nagar", "Chunabhatti", "Kurla", "Tilak Nagar", "Chembur", "Govandi", "Mankhurd",
-                "Vashi", "Sanpada", "Juinagar", "Nerul", "Seawoods", "Belapur", "Kharghar", "Mansarovar", "Khandeshwar", "Panvel", "King's Circle", "Mahim", "Bandra", "Khar Road",
-                "Santa Cruz", "Vile Parle", "Andheri", "Jogeshwari", "Ram Mandir", "Goregaon"]
+harbour_line = ["Dockyard Road", "Reay Road", "Cotton Green", "Sewri", "Vadala Road", "GTB Nagar", "Chunabhatti", 
+                "Kurla", "Tilak Nagar", "Chembur", "Govandi", "Mankhurd", "Vashi", "Sanpada", "Juinagar", "Nerul", 
+                "Seawoods", "Belapur", "Kharghar", "Mansarovar", "Khandeshwar", "Panvel", "King's Circle", "Mahim", 
+                "Bandra", "Khar Road", "Santa Cruz", "Vile Parle", "Andheri", "Jogeshwari", "Ram Mandir", "Goregaon"]
 
 mumbai_stations = sorted(list(set(western_line + central_line + harbour_line)))
 
@@ -66,12 +70,13 @@ from_st = st.selectbox("From Station", mumbai_stations, index=get_index(mumbai_s
 to_st = st.selectbox("To Station", mumbai_stations, index=get_index(mumbai_stations, "Bandra"))
 check_crowd_st = st.selectbox("Monitor Crowd At:", mumbai_stations, index=get_index(mumbai_stations, "Dadar"))
 
-# 4. LIVE DATA
+# 4. LIVE DATA (FIXED FOR MOBILE ERROR)
 loc = get_geolocation()
 now = datetime.now()
 current_time = now.strftime("%H:%M")
 
-if loc:
+# --- NEW: SAFETY CHECK FOR LOCATION ---
+if loc and 'coords' in loc:
     lat, lon = loc['coords']['latitude'], loc['coords']['longitude']
     address_full, address_short = get_cached_address(lat, lon)
     weather_data = get_cached_weather(lat, lon)
@@ -112,35 +117,30 @@ if loc:
     col1.link_button("🚗 Uber", "https://m.uber.com/ul/?action=setPickup&pickup=my_location", use_container_width=True)
     col2.link_button("🚕 Ola", "https://book.olacabs.com/", use_container_width=True)
 
-# 7. EMERGENCY SOS
-st.sidebar.error("⚠️ EMERGENCY SOS Feeling unsafe")
-
-if loc:
+    # 7. EMERGENCY SOS
+    st.sidebar.error("⚠️ EMERGENCY SOS Feeling unsafe")
     map_link = f"https://www.google.com/maps?q={lat},{lon}"
     msg = f"I%20feel%20unsafe.%20Crowd%20is%20at%20{crowd_pct}%.%20My%20location:%20{map_link}"
     
-    # 7b. PERSONAL SOS FOR DHANASHRI
     if is_personal:
         st.sidebar.link_button("🚨 Alert Savio", f"https://wa.me/917506397365?text={msg}", use_container_width=True)
         st.sidebar.link_button("🚨 Alert Mom", f"https://wa.me/91XXXXXXXXXX?text={msg}", use_container_width=True)
         st.sidebar.link_button("🚨 Alert Dad", f"https://wa.me/91XXXXXXXXXX?text={msg}", use_container_width=True)
-    
-    # 7c. CUSTOM SOS FOR NORMAL PEOPLE (With Saving Logic)
     else:
         st.sidebar.divider()
         st.sidebar.write("👤 **Emergency Contact Memory**")
-        
-        # Initialize memory if it doesn't exist
         if 'custom_name' not in st.session_state: st.session_state.custom_name = "Near One"
         if 'custom_no' not in st.session_state: st.session_state.custom_no = "91"
-
-        # Input fields that update the memory
         st.session_state.custom_name = st.sidebar.text_input("Contact Name", st.session_state.custom_name)
         st.session_state.custom_no = st.sidebar.text_input("WhatsApp No (with 91)", st.session_state.custom_no)
-        
         if len(st.session_state.custom_no) > 10:
             st.sidebar.link_button(f"🚨 Alert {st.session_state.custom_name}", f"https://wa.me/{st.session_state.custom_no}?text={msg}", use_container_width=True)
-        
+        st.sidebar.link_button("🚨 Alert Developer (Savio)", f"https://wa.me/917506397365?text={msg}", use_container_width=True)
+
+# --- IF LOCATION IS NOT READY YET ---
+else:
+    st.info("🛰️ **Searching for GPS...** Please click 'Allow' on the location popup or wait a moment for the tracker to find you.")
+    st.warning("If you are inside a building or station, signal might be weak. Try moving closer to an open area!")
 
 # 8. JOURNEY REMINDER
 st.divider()
@@ -150,4 +150,3 @@ else:
     st.info("✨ **Safe Journey!** Keep your belongings safe and stay alert while boarding.")
 
 st.caption(f"Last sync: {current_time} | Built with ❤️ by Savio")
-
