@@ -11,6 +11,27 @@ from streamlit_autorefresh import st_autorefresh
 st.set_page_config(page_title="Mumbai Survival Tracker", page_icon="🚉")
 st_autorefresh(interval=60000, key="datarefresh")
 
+# Hide Streamlit chrome — banner, header, footer, deploy button
+st.markdown("""
+<style>
+#MainMenu {visibility: hidden;}
+footer {visibility: hidden;}
+header {visibility: hidden;}
+.stAppDeployButton {display: none;}
+[data-testid="stToolbar"] {display: none;}
+[data-testid="stDecoration"] {display: none;}
+[data-testid="stStatusWidget"] {display: none;}
+.viewerBadge_container__1QSob {display: none;}
+.viewerBadge_link__1S137 {display: none;}
+#stDecoration {display: none;}
+/* Hide the "Download Streamlit" / app install banner */
+.st-emotion-cache-1wbqy5l {display: none;}
+.st-emotion-cache-zq5wmm {display: none;}
+div[data-testid="stAppViewBlockContainer"] > div:first-child iframe[src*="streamlit"] {display: none;}
+</style>
+""", unsafe_allow_html=True)
+
+
 # ============================================================
 # 2. URL-BASED PERSONALIZATION — 3 distinct modes
 #    ?user=dhanashri  → Dhanashri (Savio + Mom + Dad contacts)
