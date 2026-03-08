@@ -11,11 +11,6 @@ from streamlit_autorefresh import st_autorefresh
 st.set_page_config(page_title="Mumbai Survival Tracker", page_icon="🚉")
 st_autorefresh(interval=60000, key="datarefresh")
 
-# ---- PASTE YOUR RapidAPI Key HERE ----
-# Get it free: rapidapi.com → search "IRCTC1" by IRCTCAPI → Subscribe (Basic free plan)
-RAPIDAPI_KEY = "707221fcf8mshbdc1ffc027ca0e0p1824d3jsn53ff5f5a7ce5"
-# ----------------------------------------
-
 # ============================================================
 # 2. URL-BASED PERSONALIZATION — 3 distinct modes
 #    ?user=dhanashri  → Dhanashri (Savio + Mom + Dad contacts)
@@ -84,18 +79,6 @@ harbour_line = [
     "Khandeshwar","Panvel","King's Circle","Mahim","Bandra","Khar Road",
     "Santa Cruz","Vile Parle","Andheri","Jogeshwari","Ram Mandir","Goregaon"
 ]
-
-STATION_CODES = {
-    "CSMT": "CSTM", "Dadar": "DR", "Andheri": "ADH", "Bandra": "BDTS",
-    "Borivali": "BVI", "Thane": "TNA", "Kurla": "CLA", "Ghatkopar": "GC",
-    "Virar": "VR", "Churchgate": "CCG", "Mumbai Central": "MMCT",
-    "Bhandup": "BND", "Mulund": "MLND", "Kalyan": "KYN", "Panvel": "PNVL",
-    "Vasai Road": "BSR", "Dombivli": "DI", "Vashi": "VASHI",
-    "Nerul": "NRL", "Belapur": "CBP", "Goregaon": "GOR", "Malad": "MAD",
-    "Kandivali": "KAND", "Mira Road": "MIR", "Bhayandar": "BYR",
-    "Sion": "SION", "Matunga": "MTN", "Parel": "PAREL", "Mahim": "MM",
-    "Santa Cruz": "SCR", "Vile Parle": "VLP", "Chembur": "CMBR", "Vikhroli": "VK",
-}
 
 FLOOD_PRONE = {
     "Hindmata / Parel":       ["Parel", "Currey Road", "Chinchpokli"],
@@ -279,45 +262,6 @@ def get_cached_weather(lat, lon):
         pass
     return "N/A"
 
-@st.cache_data(ttl=300)
-def get_trains_between(from_code, to_code):
-    """Fetch upcoming trains via RapidAPI IRCTC1 — irctc1.p.rapidapi.com"""
-    if RAPIDAPI_KEY == "YOUR_RAPIDAPI_KEY_HERE":
-        return None, "api_key_missing"
-    try:
-        today   = datetime.now().strftime("%Y-%m-%d")
-        url     = "https://irctc1.p.rapidapi.com/api/v3/trainBetweenStations"
-        headers = {
-            "x-rapidapi-key":  RAPIDAPI_KEY,
-            "x-rapidapi-host": "irctc1.p.rapidapi.com"
-        }
-        params  = {
-            "fromStationCode": from_code,
-            "toStationCode":   to_code,
-            "dateOfJourney":   today,
-        }
-        r = requests.get(url, headers=headers, params=params, timeout=8)
-        if r.status_code == 200:
-            data = r.json()
-            if data.get("status") and data.get("data"):
-                now_str  = datetime.now().strftime("%H:%M")
-                trains   = data["data"]
-                upcoming = []
-                for t in trains:
-                    depart = t.get("from_std", "") or t.get("departureTime", "")
-                    if depart >= now_str:
-                        upcoming.append({
-                            "TrainName":     t.get("train_name", t.get("trainName", "—")),
-                            "TrainNumber":   t.get("train_number", t.get("trainNumber", "—")),
-                            "DepartureTime": depart,
-                            "ArrivalTime":   t.get("to_std", t.get("arrivalTime", "—")),
-                        })
-                return upcoming[:5], None
-            return None, data.get("message", "No trains found")
-        return None, f"HTTP {r.status_code}"
-    except:
-        return None, "connection_error"
-
 # ============================================================
 # 7. SESSION STATE INIT — all keys set upfront, no KeyErrors
 # ============================================================
@@ -369,38 +313,6 @@ else:
     st.caption("💡 Approximate fare — exact amount depends on km distance.")
 
 st.caption(f"From: {get_line(from_st)}  |  To: {get_line(to_st)}")
-
-# ============================================================
-# 10. TRAIN SCHEDULE
-# ============================================================
-st.divider()
-st.subheader(f"🚆 Trains: {from_st} → {to_st}")
-
-from_code = STATION_CODES.get(from_st)
-to_code   = STATION_CODES.get(to_st)
-
-if not from_code or not to_code:
-    missing = [s for s, c in [(from_st, from_code), (to_st, to_code)] if not c]
-    st.warning(f"Station code not yet mapped for: **{', '.join(missing)}**. Add it to STATION_CODES to enable live trains.")
-else:
-    with st.spinner("Fetching trains..."):
-        trains, err = get_trains_between(from_code, to_code)
-
-    if err == "api_key_missing":
-        st.info("🔑 Get your free key at [rapidapi.com](https://rapidapi.com) → search **IRCTC1** → Subscribe to Basic (free) → paste your key at the top of this file as `RAPIDAPI_KEY`.")
-    elif err == "connection_error":
-        st.warning("⚠️ Could not reach train API. Check internet connection and try again.")
-    elif err:
-        st.warning(f"Train data unavailable: {err}")
-    elif trains:
-        for t in trains:
-            with st.container(border=True):
-                tc1, tc2, tc3 = st.columns(3)
-                tc1.markdown(f"**🚂 {t.get('TrainName', '—')}**")
-                tc2.metric("Departs", t.get("DepartureTime", "—"))
-                tc3.metric("Arrives",  t.get("ArrivalTime",  "—"))
-    else:
-        st.info("No upcoming trains found for this route today.")
 
 # ============================================================
 # 11. GPS
