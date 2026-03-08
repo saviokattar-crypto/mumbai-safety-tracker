@@ -469,103 +469,39 @@ if loc and isinstance(loc, dict) and 'coords' in loc:
             "WhatsApp No (e.g. 917XXXXXXXX)", st.session_state.custom_no, key="sb_cno"
         )
 
+
+
     # ============================================================
-    # 17. JOURNEY MAP
+    # SIDEBAR MUSIC — below games
     # ============================================================
-    st.divider()
-    st.subheader("🗺️ Journey Map")
-    maps_url = (
-        f"https://www.google.com/maps/dir/?api=1"
-        f"&origin={from_st.replace(' ', '+')}+Station+Mumbai"
-        f"&destination={to_st.replace(' ', '+')}+Station+Mumbai"
-        f"&travelmode=transit"
+    st.sidebar.divider()
+    st.sidebar.markdown("### 🎵 Mood Music")
+    st.sidebar.caption("How are you feeling right now?")
+
+    MOODS = {
+        "😴 Tired / Sleepy":     ("Sleep & Relax",     "https://music.youtube.com/search?q=sleep+relax+music"),
+        "😊 Happy / Chill":      ("Happy Vibes",        "https://music.youtube.com/search?q=happy+chill+vibes+playlist"),
+        "💜 Feeling Lonely":     ("Lonely Feels",       "https://music.youtube.com/search?q=lonely+sad+bollywood+songs"),
+        "🔥 Energetic / Hype":   ("Power Hype",         "https://music.youtube.com/search?q=energetic+hype+workout+music"),
+        "😤 Stressed / Anxious": ("Stress Relief",      "https://music.youtube.com/search?q=stress+relief+calm+music"),
+        "🌧️ Rainy Day Vibes":   ("Rainy Day",          "https://music.youtube.com/search?q=rainy+day+lofi+hindi+songs"),
+        "💃 Party Mode":         ("Party Hits",         "https://music.youtube.com/search?q=bollywood+party+hits+2024"),
+        "🧘 Calm / Peaceful":    ("Calm & Peace",       "https://music.youtube.com/search?q=calm+peaceful+meditation+music"),
+    }
+
+    selected_mood = st.sidebar.selectbox(
+        "Pick your mood:",
+        list(MOODS.keys()),
+        key="mood_select"
     )
-    st.link_button("🗺️ Open in Google Maps", maps_url, use_container_width=True)
-    iframe_src = (
-        f"https://maps.google.com/maps"
-        f"?q={to_st.replace(' ', '+')}+Station+Mumbai&output=embed&z=14"
+    playlist_name, playlist_url = MOODS[selected_mood]
+    st.sidebar.link_button(
+        f"🎵 Play: {playlist_name} on YT Music",
+        playlist_url,
+        use_container_width=True
     )
-    st.components.v1.iframe(iframe_src, height=250)
+    st.sidebar.caption("Opens YouTube Music 🎶")
 
-    # ============================================================
-    # 18. SAFETY TIMER
-    # ============================================================
-    st.divider()
-    st.subheader("⏳ Safety Timer")
-    st.caption("Set your journey time. If you don't check in on arrival, an alert prompt will appear.")
-
-    if not st.session_state.timer_active:
-        timer_mins = st.slider("Journey duration (minutes)", 5, 120, 30, step=5)
-
-        if is_personal:
-            contacts      = sos_contacts_for_user()
-            contact_names = [c["name"] for c in contacts]
-            contact_nums  = {c["name"]: c["number"] for c in contacts}
-            chosen = st.selectbox("Alert who if you don't check in?", contact_names, key="timer_contact_select")
-            t_name = chosen
-            t_no   = contact_nums[chosen]
-        else:
-            t_name = st.text_input("Contact name", st.session_state.custom_name or "Near One", key="timer_name")
-            t_no   = st.text_input("Their WhatsApp (with country code)", st.session_state.custom_no or "91", key="timer_no")
-
-        if st.button("🚀 Start Timer", type="primary"):
-            if t_no and len(str(t_no)) > 10:
-                st.session_state.timer_active  = True
-                st.session_state.timer_end     = datetime.now() + timedelta(minutes=timer_mins)
-                st.session_state.timer_contact = str(t_no)
-                st.session_state.timer_cname   = str(t_name)
-                st.session_state.timer_total   = timer_mins * 60
-                st.rerun()
-            else:
-                st.error("Please enter a valid WhatsApp number (with country code) first.")
-
-    else:
-        end_time  = st.session_state.timer_end
-        remaining = (end_time - datetime.now()).total_seconds()
-        total_secs = float(st.session_state.get("timer_total", 1800))
-
-        if remaining > 0:
-            mins_left = int(remaining // 60)
-            secs_left = int(remaining % 60)
-            # Safe progress value, clamped 0.0–1.0, no division errors
-            progress_val = max(0.0, min(1.0, 1.0 - (remaining / max(total_secs, 1.0))))
-
-            st.success(f"⏱️ Timer running — **{mins_left}m {secs_left}s** left")
-            st.progress(progress_val)
-            if st.button("✅ I Arrived Safely — Stop Timer"):
-                st.session_state.timer_active = False
-                st.session_state.timer_end    = None
-                st.success("Timer stopped. Stay safe! 🙏")
-                st.rerun()
-        else:
-            # Expired — show alert prompt
-            timer_msg = (
-                f"I%20started%20my%20journey%20but%20haven%27t%20checked%20in.%20"
-                f"My%20last%20known%20location%3A%20{map_link}"
-            )
-            st.error("⚠️ Timer expired — you haven't checked in!")
-            cno   = st.session_state.timer_contact
-            cname = st.session_state.timer_cname or "Contact"
-            if cno and len(cno) > 10:
-                st.link_button(
-                    f"🚨 Send Alert to {cname} on WhatsApp",
-                    f"https://wa.me/{cno}?text={timer_msg}",
-                    use_container_width=True
-                )
-            if st.button("🔁 Reset Timer"):
-                st.session_state.timer_active = False
-                st.session_state.timer_end    = None
-                st.rerun()
-
-    # ============================================================
-    # 19. CONNECTIVITY
-    # ============================================================
-    st.divider()
-    st.subheader("🛺 Get Home")
-    col1, col2, col3 = st.columns(3)
-    col1.link_button("🚗 Uber",   "https://m.uber.com/ul/?action=setPickup&pickup=my_location", use_container_width=True)
-    col2.link_button("🚕 Ola",    "https://book.olacabs.com/",  use_container_width=True)
-    col3.link_button("🛵 Rapido", "https://rapido.bike/",       use_container_width=True)
 
 # ============================================================
 # GPS NOT READY
@@ -573,6 +509,387 @@ if loc and isinstance(loc, dict) and 'coords' in loc:
 else:
     st.info("🛰️ Searching for GPS...")
     st.warning("Tap **📍 Activate GPS** in the sidebar, or enable Location in browser settings (🔒 in address bar).")
+
+
+# ============================================================
+# GAMES — each renders full width, tall enough for phone
+# ============================================================
+st.divider()
+st.subheader("🎮 Games — Kill Time!")
+st.caption("Tap a game to expand and play!")
+
+# ---------- SNAKE ----------
+with st.expander("🐍 Snake"):
+    st.components.v1.html("""<!DOCTYPE html>
+<html><head>
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:100%;height:100%;background:#1a1a2e;display:flex;flex-direction:column;align-items:center;font-family:Arial;user-select:none;overflow:hidden}
+#sc{color:#00ff88;font-size:18px;margin:8px 0 2px}
+#mg{color:#ff4444;font-size:15px;height:20px;margin-bottom:4px}
+canvas{display:block;border:3px solid #00ff88;touch-action:none}
+.dp{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px;width:180px}
+.dp button,.dp div{width:56px;height:56px}
+.dp button{font-size:24px;background:#00cc66;border:none;border-radius:10px;color:#fff;font-weight:bold;touch-action:manipulation;cursor:pointer}
+#startBtn{margin-top:10px;padding:12px 36px;background:#00ff88;border:none;border-radius:10px;font-weight:bold;font-size:16px;cursor:pointer;touch-action:manipulation}
+</style></head><body>
+<div id="sc">Score: 0</div>
+<div id="mg">Tap Start!</div>
+<canvas id="c"></canvas>
+<div class="dp">
+  <div></div>
+  <button ontouchstart="sd(0,-1);stop(event)" onclick="sd(0,-1)">▲</button>
+  <div></div>
+  <button ontouchstart="sd(-1,0);stop(event)" onclick="sd(-1,0)">◀</button>
+  <button ontouchstart="sd(0,1);stop(event)" onclick="sd(0,1)">▼</button>
+  <button ontouchstart="sd(1,0);stop(event)" onclick="sd(1,0)">▶</button>
+</div>
+<button id="startBtn" ontouchstart="sg();stop(event)" onclick="sg()">▶ Start</button>
+<script>
+function stop(e){e.preventDefault();}
+const C=document.getElementById('c');
+const N=15;
+// Use canvas CSS width which respects iframe width correctly
+C.style.width='min(92vw,360px)';
+C.style.height='min(92vw,360px)';
+C.width=360; C.height=360;
+const SZ=360/N;
+const X=C.getContext('2d');
+let sn,dr,fd,sc,iv,tx=0,ty=0;
+
+C.addEventListener('touchstart',e=>{tx=e.touches[0].clientX;ty=e.touches[0].clientY;e.preventDefault();},{passive:false});
+C.addEventListener('touchend',e=>{
+  const dx=e.changedTouches[0].clientX-tx,dy=e.changedTouches[0].clientY-ty;
+  if(Math.abs(dx)>Math.abs(dy))sd(dx>0?1:-1,0);else sd(0,dy>0?1:-1);
+  e.preventDefault();},{passive:false});
+document.addEventListener('keydown',e=>{
+  ({ArrowUp:()=>sd(0,-1),ArrowDown:()=>sd(0,1),ArrowLeft:()=>sd(-1,0),ArrowRight:()=>sd(1,0)})[e.key]?.();
+});
+function sg(){
+  sn=[{x:7,y:7},{x:6,y:7},{x:5,y:7}];dr={x:1,y:0};sc=0;
+  document.getElementById('mg').textContent='Swipe or use D-pad!';
+  pf();clearInterval(iv);iv=setInterval(lp,185);
+}
+function sd(x,y){if(!(x===-dr.x&&y===-dr.y))dr={x,y};}
+function pf(){fd={x:Math.floor(Math.random()*N),y:Math.floor(Math.random()*N)};}
+function lp(){
+  const h={x:sn[0].x+dr.x,y:sn[0].y+dr.y};
+  if(h.x<0||h.x>=N||h.y<0||h.y>=N||sn.some(s=>s.x===h.x&&s.y===h.y)){
+    clearInterval(iv);document.getElementById('mg').textContent='💀 Game Over! Tap Start';return;
+  }
+  sn.unshift(h);
+  if(h.x===fd.x&&h.y===fd.y){sc++;document.getElementById('sc').textContent='Score: '+sc;pf();}
+  else sn.pop();
+  draw();
+}
+function draw(){
+  X.fillStyle='#1a1a2e';X.fillRect(0,0,C.width,C.height);
+  X.fillStyle='#ff4444';X.fillRect(fd.x*SZ,fd.y*SZ,SZ-2,SZ-2);
+  sn.forEach((s,i)=>{X.fillStyle=i===0?'#00ff88':'#009944';X.fillRect(s.x*SZ,s.y*SZ,SZ-2,SZ-2);});
+}
+draw();
+</script></body></html>""", height=580)
+
+# ---------- 2048 ----------
+with st.expander("🟨 2048"):
+    st.components.v1.html("""<!DOCTYPE html>
+<html><head>
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:100%;background:#1a1a2e;display:flex;flex-direction:column;align-items:center;font-family:Arial;user-select:none;padding:10px 0}
+#sc{color:#ffdd57;font-size:18px;margin:6px 0 2px}
+#mg{color:#ff4444;font-size:14px;height:18px;margin-bottom:4px}
+#grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;width:min(92vw,340px);touch-action:none}
+.cell{aspect-ratio:1;display:flex;align-items:center;justify-content:center;border-radius:8px;font-weight:bold;font-size:clamp(16px,5vw,24px);color:#1a1a2e}
+.dp{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:14px;width:180px}
+.dp button,.dp div{width:56px;height:56px}
+.dp button{font-size:24px;background:#ccaa00;border:none;border-radius:10px;cursor:pointer;font-weight:bold;touch-action:manipulation;color:#1a1a2e}
+#newBtn{margin-top:10px;padding:12px 36px;background:#ffdd57;border:none;border-radius:10px;font-weight:bold;font-size:16px;cursor:pointer;touch-action:manipulation;color:#1a1a2e}
+</style></head><body>
+<div id="sc">Score: 0</div>
+<div id="mg">Swipe grid or use D-pad!</div>
+<div id="grid"></div>
+<div class="dp">
+  <div></div>
+  <button ontouchstart="mv('up');stop(event)" onclick="mv('up')">▲</button>
+  <div></div>
+  <button ontouchstart="mv('left');stop(event)" onclick="mv('left')">◀</button>
+  <button ontouchstart="mv('down');stop(event)" onclick="mv('down')">▼</button>
+  <button ontouchstart="mv('right');stop(event)" onclick="mv('right')">▶</button>
+</div>
+<button id="newBtn" ontouchstart="init();stop(event)" onclick="init()">🔄 New Game</button>
+<script>
+function stop(e){e.preventDefault();}
+const CL={0:'#3a3a5e',2:'#eee4da',4:'#ede0c8',8:'#f2b179',16:'#f59563',32:'#f67c5f',64:'#f65e3b',128:'#edcf72',256:'#edcc61',512:'#edc850',1024:'#edc53f',2048:'#edc22e'};
+let bd,sc,tx,ty;
+const G=document.getElementById('grid');
+G.addEventListener('touchstart',e=>{tx=e.touches[0].clientX;ty=e.touches[0].clientY;e.preventDefault();},{passive:false});
+G.addEventListener('touchend',e=>{
+  const dx=e.changedTouches[0].clientX-tx,dy=e.changedTouches[0].clientY-ty;
+  Math.abs(dx)>Math.abs(dy)?mv(dx>0?'right':'left'):mv(dy>0?'down':'up');
+  e.preventDefault();},{passive:false});
+document.addEventListener('keydown',e=>{
+  ({ArrowUp:()=>mv('up'),ArrowDown:()=>mv('down'),ArrowLeft:()=>mv('left'),ArrowRight:()=>mv('right')})[e.key]?.();
+});
+function init(){bd=Array(4).fill(0).map(()=>Array(4).fill(0));sc=0;at();at();rn();}
+function at(){let e=[];bd.forEach((r,i)=>r.forEach((v,j)=>{if(!v)e.push([i,j]);}));if(!e.length)return;const[i,j]=e[Math.floor(Math.random()*e.length)];bd[i][j]=Math.random()<0.9?2:4;}
+function rn(){
+  G.innerHTML='';
+  bd.forEach(r=>r.forEach(v=>{const d=document.createElement('div');d.className='cell';d.style.background=CL[v]||'#3a3a5e';d.textContent=v||'';G.appendChild(d);}));
+  document.getElementById('sc').textContent='Score: '+sc;
+  if(bd.some(r=>r.includes(2048)))document.getElementById('mg').textContent='🏆 You Win!';
+}
+function sl(row){let a=row.filter(x=>x);for(let i=0;i<a.length-1;i++){if(a[i]===a[i+1]){a[i]*=2;sc+=a[i];a.splice(i+1,1);}}while(a.length<4)a.push(0);return a;}
+function mv(d){
+  let b=bd.map(r=>[...r]);
+  if(d==='left')b=b.map(r=>sl(r));
+  else if(d==='right')b=b.map(r=>sl([...r].reverse()).reverse());
+  else if(d==='up'){b=b[0].map((_,i)=>b.map(r=>r[i])).map(r=>sl(r));b=b[0].map((_,i)=>b.map(r=>r[i]));}
+  else if(d==='down'){b=b[0].map((_,i)=>b.map(r=>r[i]).reverse()).map(r=>sl(r)).map(r=>r.reverse());b=b[0].map((_,i)=>b.map(r=>r[i]));}
+  if(JSON.stringify(b)!==JSON.stringify(bd)){bd=b;at();}rn();
+}
+init();
+</script></body></html>""", height=560)
+
+# ---------- FLAPPY BIRD ----------
+with st.expander("🐦 Flappy Bird"):
+    st.components.v1.html("""<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#1a1a2e;display:flex;flex-direction:column;align-items:center;font-family:Arial;padding:8px;user-select:none}
+#sc{color:#00aaff;font-size:20px;font-weight:bold;margin:6px 0}
+#msg{color:#ff4444;font-size:15px;min-height:20px;margin-bottom:6px}
+canvas{background:#70c5ce;display:block;width:min(95vw,340px);height:auto;border:3px solid #00aaff;border-radius:8px}
+#btn{margin-top:10px;padding:14px 40px;background:#00aaff;color:#fff;border:none;border-radius:10px;font-size:17px;font-weight:bold;cursor:pointer;touch-action:manipulation}
+</style>
+</head>
+<body>
+<div id="sc">Score: 0</div>
+<div id="msg">Press Start then tap to flap!</div>
+<canvas id="c" width="320" height="480"></canvas>
+<button id="btn" onclick="startGame()" ontouchstart="startGame();event.preventDefault()">Start</button>
+<script>
+var cv=document.getElementById('c'),ctx=cv.getContext('2d');
+var W=320,H=480,bird,pipes,score,running,raf,frame;
+function startGame(){
+  bird={x:60,y:H/2,r:14,v:0};
+  pipes=[];score=0;running=true;frame=0;
+  document.getElementById('msg').textContent='Tap to flap!';
+  document.getElementById('sc').textContent='Score: 0';
+  cancelAnimationFrame(raf);
+  tick();
+}
+function flap(){if(running)bird.v=-4.5;}
+cv.addEventListener('touchstart',function(e){e.preventDefault();flap();},{passive:false});
+cv.addEventListener('click',flap);
+document.addEventListener('keydown',function(e){if(e.code==='Space'){e.preventDefault();flap();}});
+function tick(){
+  if(!running)return;
+  frame++;
+  bird.v+=0.18; bird.y+=bird.v;
+  if(frame%90===0){
+    var gap=155,top=60+Math.random()*(H-gap-120);
+    pipes.push({x:W,top:top,gap:gap,scored:false});
+  }
+  for(var i=0;i<pipes.length;i++)pipes[i].x-=1.8;
+  pipes=pipes.filter(function(p){return p.x>-60;});
+  for(var i=0;i<pipes.length;i++){
+    if(!pipes[i].scored&&pipes[i].x+50<bird.x){
+      pipes[i].scored=true;score++;
+      document.getElementById('sc').textContent='Score: '+score;
+    }
+  }
+  if(bird.y+bird.r>H-20||bird.y-bird.r<0){gameOver();return;}
+  for(var i=0;i<pipes.length;i++){
+    var p=pipes[i];
+    if(bird.x+bird.r-6>p.x&&bird.x-bird.r+6<p.x+50){
+      if(bird.y-bird.r+6<p.top||bird.y+bird.r-6>p.top+p.gap){gameOver();return;}
+    }
+  }
+  draw();raf=requestAnimationFrame(tick);
+}
+function gameOver(){
+  running=false;draw();
+  document.getElementById('msg').textContent='Game Over! Score: '+score;
+}
+function draw(){
+  ctx.fillStyle='#70c5ce';ctx.fillRect(0,0,W,H);
+  for(var i=0;i<pipes.length;i++){
+    var p=pipes[i];
+    ctx.fillStyle='#33aa33';
+    ctx.fillRect(p.x,0,50,p.top);
+    ctx.fillRect(p.x,p.top+p.gap,50,H);
+    ctx.fillStyle='#228822';
+    ctx.fillRect(p.x-4,p.top-20,58,20);
+    ctx.fillRect(p.x-4,p.top+p.gap,58,20);
+  }
+  ctx.fillStyle='#c2a85a';ctx.fillRect(0,H-20,W,20);
+  ctx.fillStyle='#5d8a3c';ctx.fillRect(0,H-22,W,4);
+  ctx.fillStyle='#FFD700';
+  ctx.beginPath();ctx.arc(bird.x,bird.y,bird.r,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='#000';
+  ctx.beginPath();ctx.arc(bird.x+6,bird.y-4,3,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='#FF6600';
+  ctx.beginPath();ctx.moveTo(bird.x+12,bird.y);ctx.lineTo(bird.x+20,bird.y-3);ctx.lineTo(bird.x+20,bird.y+4);ctx.closePath();ctx.fill();
+}
+draw();
+</script>
+</body>
+</html>""", height=680)
+
+
+# ---------- TRAFFIC RACER ----------
+with st.expander("🚗 Mumbai Traffic Racer"):
+    st.components.v1.html("""<!DOCTYPE html>
+<html><head>
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:100%;background:#1a1a2e;display:flex;flex-direction:column;align-items:center;font-family:Arial;user-select:none;overflow:hidden}
+#hud{color:#ff6600;font-size:16px;display:flex;gap:24px;margin:8px 0 2px}
+#mg{color:#ff4444;font-size:14px;height:18px;margin-bottom:4px}
+canvas{display:block;border:3px solid #ff6600;touch-action:none}
+.ctrl{display:flex;gap:12px;margin-top:10px;width:100%;max-width:400px;padding:0 10px}
+.ctrl button{flex:1;height:70px;font-size:26px;background:#222;border:3px solid #ff6600;border-radius:14px;cursor:pointer;color:#ff6600;font-weight:bold;touch-action:manipulation}
+.ctrl button:active{background:#ff6600;color:#fff}
+#startBtn{margin-top:10px;padding:12px 40px;background:#ff6600;border:none;border-radius:10px;font-weight:bold;font-size:16px;color:#fff;cursor:pointer;touch-action:manipulation}
+</style></head><body>
+<div id="hud"><span id="sc">Score: 0</span><span id="sp">Speed: 1.0x</span></div>
+<div id="mg">Tap Start to Race!</div>
+<canvas id="c"></canvas>
+<div class="ctrl">
+  <button id="lb"
+    ontouchstart="lLeft=true;event.preventDefault()"
+    ontouchend="lLeft=false;event.preventDefault()"
+    ontouchcancel="lLeft=false"
+    onmousedown="lLeft=true" onmouseup="lLeft=false" onmouseleave="lLeft=false">◀ Left</button>
+  <button id="rb"
+    ontouchstart="lRight=true;event.preventDefault()"
+    ontouchend="lRight=false;event.preventDefault()"
+    ontouchcancel="lRight=false"
+    onmousedown="lRight=true" onmouseup="lRight=false" onmouseleave="lRight=false">Right ▶</button>
+</div>
+<button id="startBtn" ontouchstart="startGame();event.preventDefault()" onclick="startGame()">▶ Start</button>
+<script>
+const C=document.getElementById('c');
+// Fixed logical canvas — CSS scales it visually
+const W=400, H=480;
+C.width=W; C.height=H;
+C.style.width='min(94vw,400px)';
+C.style.height='auto';
+const X=C.getContext('2d');
+
+const LANE_COUNT=4;
+const ROAD_L=W*0.07, ROAD_R=W*0.93;
+const ROAD_W=ROAD_R-ROAD_L;
+const LANE_W=ROAD_W/LANE_COUNT;
+const LANES=Array.from({length:LANE_COUNT},(_,i)=>ROAD_L+LANE_W*(i+0.5));
+const PW=Math.floor(LANE_W*0.72), PH=Math.floor(LANE_W*1.4);
+
+let px,py,cars,sc,spd,running,frame,roadY=0,lLeft=false,lRight=false;
+
+document.addEventListener('keydown',e=>{if(e.key==='ArrowLeft')lLeft=true;if(e.key==='ArrowRight')lRight=true;});
+document.addEventListener('keyup',e=>{if(e.key==='ArrowLeft')lLeft=false;if(e.key==='ArrowRight')lRight=false;});
+
+function startGame(){
+  px=LANES[1]-PW/2; py=H-PH-16;
+  cars=[];sc=0;spd=2.2;running=true;roadY=0;
+  document.getElementById('mg').textContent='Hold ◀ or ▶ to steer!';
+  cancelAnimationFrame(frame);loop();
+}
+function spawnCar(){
+  const l=Math.floor(Math.random()*LANE_COUNT);
+  const clrs=['#e74c3c','#3498db','#f1c40f','#2ecc71','#9b59b6','#e67e22','#1abc9c'];
+  cars.push({x:LANES[l]-PW/2,y:-PH,color:clrs[Math.floor(Math.random()*clrs.length)]});
+}
+function loop(){
+  if(!running)return;
+  sc++; spd=2.2+sc/700;
+  document.getElementById('sc').textContent='Score: '+Math.floor(sc/10);
+  document.getElementById('sp').textContent='Speed: '+spd.toFixed(1)+'x';
+  const step=ROAD_W*0.014;
+  if(lLeft&&px>ROAD_L+4)px-=step;
+  if(lRight&&px<ROAD_R-PW-4)px+=step;
+  if(Math.random()<0.018+sc/70000)spawnCar();
+  cars.forEach(c=>c.y+=spd*2.6);
+  cars=cars.filter(c=>c.y<H+PH);
+  // Collision with 8px forgiveness
+  for(const c of cars){
+    if(px+8<c.x+PW-8&&px+PW-8>c.x+8&&py+8<c.y+PH-8&&py+PH-8>c.y+8){
+      running=false;
+      document.getElementById('mg').textContent='💥 Crash! Final Score: '+Math.floor(sc/10);
+      draw();return;
+    }
+  }
+  draw();frame=requestAnimationFrame(loop);
+}
+function drawCar(x,y,w,h,color,isPlayer){
+  // Body
+  X.fillStyle=color;
+  X.beginPath();if(X.roundRect)X.roundRect(x,y,w,h,6);else X.rect(x,y,w,h);X.fill();
+  // Windshield
+  X.fillStyle='rgba(180,220,255,0.75)';
+  if(isPlayer)X.fillRect(x+w*0.12,y+h*0.55,w*0.76,h*0.2);
+  else X.fillRect(x+w*0.12,y+h*0.1,w*0.76,h*0.2);
+  // Wheels
+  X.fillStyle='#111';
+  [[x-3,y+h*0.12],[x+w-1,y+h*0.12],[x-3,y+h*0.68],[x+w-1,y+h*0.68]].forEach(([wx,wy])=>{
+    X.fillRect(wx,wy,5,h*0.16);
+  });
+  if(isPlayer){
+    // Headlights
+    X.fillStyle='#fffaaa';X.fillRect(x+w*0.1,y+h*0.03,w*0.2,h*0.07);X.fillRect(x+w*0.7,y+h*0.03,w*0.2,h*0.07);
+    // Taxi sign
+    X.fillStyle='#000';X.font='bold '+Math.floor(w*0.3)+'px Arial';X.textAlign='center';X.fillText('TAXI',x+w/2,y+h*0.48);
+  } else {
+    // Tail lights
+    X.fillStyle='#ff2200';X.fillRect(x+w*0.08,y+h*0.88,w*0.2,h*0.08);X.fillRect(x+w*0.72,y+h*0.88,w*0.2,h*0.08);
+  }
+}
+function draw(){
+  // Road
+  X.fillStyle='#2c2c2c';X.fillRect(0,0,W,H);
+  // Side areas
+  X.fillStyle='#1a1a3e';X.fillRect(0,0,ROAD_L,H);X.fillRect(ROAD_R,0,W-ROAD_R,H);
+  // Buildings
+  X.fillStyle='#252545';
+  [[0,ROAD_L-2],[ROAD_R+2,W-ROAD_R-2]].forEach(([bx,bw])=>{
+    for(let i=0;i<5;i++){
+      const bh=H*0.08+Math.sin(i*2.1)*H*0.05;
+      X.fillRect(bx,H-bh-i*(H*0.15),bw,bh);
+      // Windows
+      X.fillStyle='#ffff99';
+      for(let r=0;r<3;r++)for(let c2=0;c2<2;c2++){
+        if(Math.random()>0.3)X.fillRect(bx+bw*0.15+c2*bw*0.4,H-bh-i*(H*0.15)+r*bh*0.28+bh*0.1,bw*0.2,bh*0.15);
+      }
+      X.fillStyle='#252545';
+    }
+  });
+  // Road markings scroll
+  roadY=(roadY+spd*2.6)%56;
+  X.strokeStyle='#666';X.lineWidth=2;X.setLineDash([28,26]);
+  for(let i=1;i<LANE_COUNT;i++){
+    const lx=ROAD_L+LANE_W*i;
+    X.beginPath();X.moveTo(lx,roadY-56);X.lineTo(lx,H);X.stroke();
+  }
+  X.setLineDash([]);
+  // Road edges
+  X.strokeStyle='#ff6600';X.lineWidth=4;
+  X.beginPath();X.moveTo(ROAD_L,0);X.lineTo(ROAD_L,H);X.stroke();
+  X.beginPath();X.moveTo(ROAD_R,0);X.lineTo(ROAD_R,H);X.stroke();
+  // Traffic cars
+  cars.forEach(c=>drawCar(c.x,c.y,PW,PH,c.color,false));
+  // Player taxi
+  drawCar(px,py,PW,PH,'#FFD700',true);
+}
+draw();
+</script></body></html>""", height=700)
+
 
 # ============================================================
 # 20. FOOTER
