@@ -322,9 +322,6 @@ if st.sidebar.button("📍 Activate GPS"):
     st.rerun()
 
 loc = get_geolocation()
-now = datetime.now()
-current_time = now.strftime("%H:%M")
-
 now          = datetime.now()
 current_time = now.strftime("%H:%M")
 
@@ -392,6 +389,7 @@ map_link = map_link if 'map_link' in dir() else "https://www.google.com/maps"
 # 13. CROWD TRACKING
 # ============================================================
 # ── Time intelligence ──────────────────────────────────────
+now    = datetime.now()  # always fresh for crowd calc
 hour   = now.hour
 minute = now.minute
 t      = hour + minute / 60.0          # e.g. 8.5 = 8:30am
