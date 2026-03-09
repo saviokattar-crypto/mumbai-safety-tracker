@@ -477,12 +477,54 @@ if is_weekend:
     else:
         base = int(base * 0.55)   # much quieter on weekends
 
-# ── Live signal boosters (real data) ────────────────────────
+# ── Calendar intelligence ───────────────────────────────────
+month = now.month
+day   = now.day
+
+# Monsoon — trains packed due to delays and flooding
+is_monsoon = month in (6, 7, 8, 9)
+
+# Exam season — lighter crowds (Mar–Apr, mid Oct–mid Nov)
+is_exam_season = (month in (3, 4)) or (month == 10 and day >= 15) or (month == 11 and day <= 15)
+
+# Last train rush — after 10:30pm at terminus stations
+TERMINUS = {"Churchgate","CSMT","Virar","Dahanu Road","Kasara","Karjat","Panvel","Boisar","Kalyan","Thane"}
+is_last_train = (hour == 23) or (hour == 22 and minute >= 30)
+
+# Festival calendar — Mumbai major festivals
+FESTIVALS = {
+    (9,7):("Ganpati",30),(9,8):("Ganpati",35),(9,9):("Ganpati",30),(9,10):("Ganpati",25),(9,11):("Ganpati",20),
+    (8,27):("Ganpati",30),(8,28):("Ganpati",35),(8,29):("Ganpati",30),(8,30):("Ganpati",25),(8,31):("Ganpati",20),
+    (9,15):("Ganpati",30),(9,16):("Ganpati",35),(9,17):("Ganpati Visarjan",40),
+    (9,5):("Ganpati Visarjan",40),
+    (10,29):("Diwali",35),(10,30):("Diwali",35),(10,31):("Diwali",30),
+    (11,1):("Diwali",30),(11,2):("Diwali",25),(11,12):("Diwali",35),(11,13):("Diwali",35),
+    (4,10):("Eid",25),(4,11):("Eid",20),(3,30):("Eid",25),(3,31):("Eid",20),
+    (6,17):("Eid ul-Adha",25),(6,18):("Eid ul-Adha",20),
+    (12,24):("Christmas Eve",20),(12,25):("Christmas",15),
+    (12,31):("New Year Eve",30),(1,1):("New Year",20),
+    (3,25):("Holi",20),(3,26):("Holi",15),(3,14):("Holi",20),(3,15):("Holi",15),
+    (10,3):("Navratri",15),(10,4):("Navratri",15),(10,12):("Navratri",15),(10,13):("Navratri",15),
+    (1,26):("Republic Day",-10),(8,15):("Independence Day",-10),
+}
+festival_name, festival_boost = FESTIVALS.get((month, day), (None, 0))
+
+# IPL at Wankhede — Mar 22 to Jun 2, evening matches
+WANKHEDE = {"Churchgate","Marine Lines","Charni Road","CSMT"}
+is_ipl = (month == 3 and day >= 22) or month in (4,5) or (month == 6 and day <= 2)
+is_ipl_boost = check_crowd_st in WANKHEDE and is_ipl and 18 <= hour <= 23
+
+# ── Live signal boosters ─────────────────────────────────────
 crowd_pct = base
-if rain_mm >= 3:  crowd_pct += 12   # rain drives people to trains
-if rain_mm >= 8:  crowd_pct += 8    # heavy rain adds even more
-if is_mon_fri:    crowd_pct += 6    # Monday/Friday genuinely worse
-crowd_pct = min(crowd_pct, 100)
+if rain_mm >= 3:   crowd_pct += 12
+if rain_mm >= 8:   crowd_pct += 8
+if is_mon_fri:     crowd_pct += 6
+if is_monsoon:     crowd_pct += 10
+if is_exam_season: crowd_pct -= 8
+if festival_boost: crowd_pct += festival_boost
+if is_ipl_boost:   crowd_pct += 25
+if is_last_train and check_crowd_st in TERMINUS: crowd_pct += 20
+crowd_pct = min(max(crowd_pct, 0), 100)
 
 # SOS message uses actual crowd %
 sos_msg = make_sos_msg(crowd_pct, map_link)
@@ -493,9 +535,14 @@ st.progress(crowd_pct / 100)
 st.write(f"**Crowd Density: {crowd_pct}%**")
 notes = []
 is_peak = ("07:30" <= current_time <= "09:30") or ("17:00" <= current_time <= "19:30")
-if is_peak:      notes.append("🔴 Peak hours")
-if is_mon_fri:   notes.append("📅 Mon/Fri rush")
-if rain_mm >= 3: notes.append("🌧️ Rain adding to crowd")
+if is_peak:        notes.append("🔴 Peak hours")
+if is_mon_fri:     notes.append("📅 Mon/Fri rush")
+if rain_mm >= 3:   notes.append("🌧️ Rain boost")
+if is_monsoon:     notes.append("🌧️ Monsoon season")
+if is_exam_season: notes.append("📚 Exam season — lighter")
+if festival_name:  notes.append(f"🎉 {festival_name}")
+if is_ipl_boost:   notes.append("🏏 IPL match nearby")
+if is_last_train and check_crowd_st in TERMINUS: notes.append("🚉 Last train rush")
 if notes: st.caption(" · ".join(notes))
 
 if crowd_pct >= 80:
