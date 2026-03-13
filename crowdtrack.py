@@ -18,6 +18,22 @@ st.markdown("""
 footer {visibility: hidden;}
 [data-testid="stDecoration"] {display: none;}
 </style>
+
+<!-- Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-ZVQET9344N"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-ZVQET9344N');
+
+  // Track which user opened the app
+  var urlParams = new URLSearchParams(window.location.search);
+  var userParam = urlParams.get('user') || 'public';
+  gtag('event', 'app_open', {
+    'user_type': userParam
+  });
+</script>
 """, unsafe_allow_html=True)
 
 
@@ -162,18 +178,20 @@ def get_fare(from_st, to_st):
     """
     Mumbai suburban fare slabs — accurate as per current Railway tariff.
     Fares unchanged since 2014 (Western/Central/Harbour lines).
-    Returns: (second_class_fare, first_class_fare, distance_band_label)
+    Returns: (second_class_fare, first_class_nonac_fare, ac_local_fare, distance_band_label)
     """
     if from_st == to_st:
-        return "Same station", "", ""
+        return "Same station", "", "", "", ""
     d, cross = _stop_dist(from_st, to_st)
-    if d <= 2:   return "₹5",   "₹50",   "1–5 km"
-    if d <= 4:   return "₹10",  "₹100",  "6–12 km"
-    if d <= 7:   return "₹15",  "₹145",  "13–20 km"
-    if d <= 11:  return "₹20",  "₹200",  "21–30 km"
-    if d <= 16:  return "₹25",  "₹240",  "31–45 km"
-    if d <= 22:  return "₹30",  "₹290",  "46–60 km"
-    return               "₹35+","₹340+", "60+ km"
+    # 2nd Class | 1st Class Non-AC | AC Local — official Mumbai suburban fare chart
+    # AC fares from CSMT official chart (amazingmaharashtra.com, 2022)
+    if d <= 2:   return "₹5",   "₹50",  "₹35",  "up to 5 km"
+    if d <= 4:   return "₹10",  "₹70",  "₹70",  "6–12 km"
+    if d <= 7:   return "₹15",  "₹115", "₹95",  "13–20 km"
+    if d <= 11:  return "₹20",  "₹145", "₹105", "21–30 km"
+    if d <= 16:  return "₹25",  "₹165", "₹115", "31–45 km"
+    if d <= 22:  return "₹30",  "₹195", "₹125", "46–60 km"
+    return               "₹35", "₹225", "₹140", "60+ km"
 
 def get_travel_time(from_st, to_st):
     if from_st == to_st:
@@ -309,7 +327,7 @@ check_crowd_st = st.selectbox("Monitor Crowd At:", mumbai_stations, index=get_in
 
 line_name, line_emoji = get_common_line(from_st, to_st)
 
-fare_2nd, fare_1st, fare_band = get_fare(from_st, to_st)
+fare_2nd, fare_1st, fare_ac, fare_band = get_fare(from_st, to_st)
 
 # Show all journey info stacked — full labels visible on mobile
 st.markdown(f"🛤️ **Route:** {line_emoji} {line_name}")
@@ -318,8 +336,9 @@ st.markdown(f"⏱️ **Est. Travel:** {get_travel_time(from_st, to_st)}")
 if fare_2nd == "Same station":
     st.info("📍 From and To are the same station.")
 else:
-    st.markdown(f"🎫 **Second Class (General):** {fare_2nd}")
-    st.markdown(f"🥇 **First Class:** {fare_1st}")
+    st.markdown(f"🎫 **2nd Class (General):** {fare_2nd}")
+    st.markdown(f"🔵 **1st Class (Non-AC):** {fare_1st}")
+    st.markdown(f"❄️ **AC Local:** {fare_ac}")
     st.caption("💡 Approximate fare — exact amount depends on km distance.")
 
 st.caption(f"From: {get_line(from_st)}  |  To: {get_line(to_st)}")
